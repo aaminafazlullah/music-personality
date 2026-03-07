@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 import spotipy
 from spotify import create_spotify_oauth, get_user_top_tracks, get_user_top_artists
+from ml_model import get_personality_cluster
 from dotenv import load_dotenv
 import os
 
@@ -24,11 +25,15 @@ def callback(code: str):
     sp_oauth = create_spotify_oauth()
     token_info = sp_oauth.get_access_token(code)
     sp = spotipy.Spotify(auth=token_info["access_token"])
-    
+
     tracks = get_user_top_tracks(sp)
     artists = get_user_top_artists(sp)
-    
+
+    cluster, n_clusters, top_genres = get_personality_cluster(artists)
+
     return {
-        "tracks": tracks,
-        "artists": artists
+        "top_tracks": tracks[:5],
+        "top_genres": top_genres,
+        "cluster": cluster,
+        "n_clusters": n_clusters
     }
