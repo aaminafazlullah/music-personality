@@ -1,6 +1,7 @@
 import os
 import json
-import urllib.request
+import requests
+from dotenv import load_dotenv
 
 def generate_personality(top_tracks, top_genres, cluster):
     track_names = [f"{t['name']} by {t['artist']}" for t in top_tracks]
@@ -24,26 +25,28 @@ Respond in this exact JSON format:
     "emoji": "2-3 relevant emojis"
 }}"""
 
+    load_dotenv(override=True)
     api_key = os.getenv("GROQ_API_KEY")
-    url = "https://api.groq.com/openai/v1/chat/completions"
-
-    data = json.dumps({
-        "model": "llama-3.3-70b-versatile",
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.8
-    }).encode("utf-8")
-
-    req = urllib.request.Request(url, data=data, headers={
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
-    })
 
     try:
-        with urllib.request.urlopen(req) as response:
-            result = json.loads(response.read().decode("utf-8"))
-            text = result["choices"][0]["message"]["content"]
-            text = text.replace("```json", "").replace("```", "").strip()
-            return json.loads(text)
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "llama-3.3-70b-versatile",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.8
+            }
+        )
+        print(f"GROQ STATUS: {response.status_code}")
+        print(f"GROQ RESPONSE: {response.text[:200]}")
+        result = response.json()
+        text = result["choices"][0]["message"]["content"]
+        text = text.replace("```json", "").replace("```", "").strip()
+        return json.loads(text)
     except Exception as e:
         print(f"GROQ ERROR: {e}")
         return {
