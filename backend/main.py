@@ -1,6 +1,9 @@
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 import spotipy
+import json
+import urllib.parse
 from spotify import create_spotify_oauth, get_user_top_tracks, get_user_top_artists
 from ml_model import get_personality_cluster
 from personality import generate_personality
@@ -11,9 +14,10 @@ load_dotenv()
 
 app = FastAPI()
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def index():
-    return {"message": "Music Personality API is running!"}
+    with open("../frontend/index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.get("/login")
 def login():
@@ -33,8 +37,11 @@ def callback(code: str):
     cluster, n_clusters, top_genres = get_personality_cluster(artists)
     personality = generate_personality(tracks[:5], top_genres, cluster)
 
-    return {
+    data = {
         "top_tracks": tracks[:5],
         "top_genres": top_genres,
         "personality": personality
     }
+
+    encoded = urllib.parse.quote(json.dumps(data))
+    return RedirectResponse(url=f"/?data={encoded}")
