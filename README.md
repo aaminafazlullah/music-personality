@@ -64,7 +64,7 @@ music-personality/
 
 ## 🌐 Live Demo
 
-Coming soon — deployed on AWS EC2
+**[musiself.mooo.com](https://musiself.mooo.com)**
 
 ---
 
