@@ -10,7 +10,8 @@ def create_spotify_oauth():
         client_id=os.getenv("SPOTIFY_CLIENT_ID"),
         client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"),
         redirect_uri=os.getenv("REDIRECT_URI"),
-        scope="user-top-read user-read-recently-played"
+        scope="user-top-read user-read-recently-played",
+        cache_handler=spotipy.cache_handler.MemoryCacheHandler()
     )
 
 def get_user_top_tracks(sp):
